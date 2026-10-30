@@ -6,7 +6,7 @@
     <div class="auth-hero">
         <h1>Lapor<br>Banjir</h1>
         <p>Platform pelaporan banjir cepat dan transparan. Masyarakat melapor, petugas bergerak.</p>
-        <a href="{{ route('laporan.create') }}" class="btn btn-light">Lapor tanpa login →</a>
+        <a href="{{ route('lapor.create') }}" class="btn btn-light">Lapor tanpa login →</a>
     </div>
 
     <div class="card auth-card">

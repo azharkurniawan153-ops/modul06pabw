@@ -14,10 +14,10 @@
 <header class="nav">
     <a href="/" class="brand"><span class="drop"></span> LaporBanjir</a>
     <nav class="menu">
-        <a href="{{ route('laporan.create') }}" class="{{ request()->routeIs('laporan.create') ? 'active' : '' }}">Lapor Banjir</a>
+        <a href="{{ route('lapor.create') }}" class="{{ request()->routeIs('lapor.*') ? 'active' : '' }}">Lapor Banjir</a>
 
         @auth
-            <a href="{{ route('laporan.index') }}" class="{{ request()->routeIs('laporan.index') ? 'active' : '' }}">Daftar Laporan</a>
+            <a href="{{ route('laporan.index') }}" class="{{ request()->routeIs('laporan.*') ? 'active' : '' }}">Daftar Laporan</a>
             <a href="{{ route('profil') }}" class="{{ request()->routeIs('profil') ? 'active' : '' }}">Profil Petugas</a>
             <form action="{{ route('logout') }}" method="POST" class="inline">
                 @csrf
@@ -35,17 +35,6 @@
 <main class="container">
     @if (session('success'))
         <div class="alert alert-success">✅ {{ session('success') }}</div>
-    @endif
-
-    @if ($errors->any())
-        <div class="alert alert-error">
-            <strong>⚠️ Terjadi kesalahan:</strong>
-            <ul>
-                @foreach ($errors->all() as $error)
-                    <li>{{ $error }}</li>
-                @endforeach
-            </ul>
-        </div>
     @endif
 
     @yield('content')

@@ -2,69 +2,73 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Requests\LaporanRequest;
 use App\Models\Laporan;
-use Illuminate\Http\Request;
 
+/** Resource controller pengelolaan laporan oleh petugas (di dalam middleware auth). */
 class LaporanController extends Controller
 {
-    // Publik: form pelaporan (tanpa login)
-    public function create()
-    {
-        return view('laporan.create');
-    }
-
-    public function store(Request $request)
-    {
-        $data = $request->validate([
-            'nama_pelapor' => ['required', 'string', 'max:100'],
-            'no_hp'        => ['required', 'regex:/^[0-9+\-\s]{8,20}$/'],
-            'lokasi'       => ['required', 'string', 'max:255'],
-            'tinggi_air'   => ['required', 'integer', 'min:1', 'max:1000'],
-            'deskripsi'    => ['required', 'string', 'min:10'],
-        ], [
-            'nama_pelapor.required' => 'Nama pelapor wajib diisi.',
-            'no_hp.required'        => 'Nomor HP wajib diisi.',
-            'no_hp.regex'           => 'Nomor HP tidak valid (8-20 digit).',
-            'lokasi.required'       => 'Lokasi banjir wajib diisi.',
-            'tinggi_air.required'   => 'Tinggi air wajib diisi.',
-            'tinggi_air.integer'    => 'Tinggi air harus berupa angka (cm).',
-            'tinggi_air.min'        => 'Tinggi air minimal 1 cm.',
-            'deskripsi.required'    => 'Deskripsi wajib diisi.',
-            'deskripsi.min'         => 'Deskripsi minimal 10 karakter.',
-        ]);
-
-        Laporan::create($data);
-
-        return redirect()->route('laporan.create')
-            ->with('success', 'Laporan terkirim. Terima kasih, petugas akan segera menindaklanjuti.');
-    }
-
-    // Wajib login: daftar & pengelolaan
     public function index()
     {
-        $laporans = Laporan::latest()->get();
+        $laporans = Laporan::latest()->paginate(10);
+
         $stat = [
-            'total'    => $laporans->count(),
-            'baru'     => $laporans->where('status', 'baru')->count(),
-            'diproses' => $laporans->where('status', 'diproses')->count(),
-            'selesai'  => $laporans->where('status', 'selesai')->count(),
+            'total'    => Laporan::count(),
+            'menunggu' => Laporan::where('status', 'Menunggu')->count(),
+            'diproses' => Laporan::where('status', 'Diproses')->count(),
+            'selesai'  => Laporan::where('status', 'Selesai')->count(),
         ];
 
         return view('laporan.index', compact('laporans', 'stat'));
     }
 
-    public function updateStatus(Request $request, Laporan $laporan)
+    public function create()
     {
-        $request->validate(['status' => ['required', 'in:baru,diproses,selesai']]);
-        $laporan->update(['status' => $request->status]);
+        return view('laporan.create');
+    }
 
-        return back()->with('success', 'Status laporan diperbarui.');
+    public function store(LaporanRequest $request)
+    {
+        $data = $request->validated();
+        $data['foto'] = $request->file('foto')->store('laporan', 'public');
+        $data['status'] = 'Menunggu';
+
+        Laporan::create($data);
+
+        return redirect()->route('laporan.index')->with('success', 'Laporan berhasil ditambahkan.');
+    }
+
+    public function show(Laporan $laporan)
+    {
+        return view('laporan.show', compact('laporan'));
+    }
+
+    public function edit(Laporan $laporan)
+    {
+        return view('laporan.edit', compact('laporan'));
+    }
+
+    public function update(LaporanRequest $request, Laporan $laporan)
+    {
+        $data = $request->validated();
+        unset($data['foto']);
+
+        if ($request->hasFile('foto')) {
+            // Simpan foto baru dulu, baru hapus foto lama agar tidak kehilangan data bila gagal.
+            $fotoBaru = $request->file('foto')->store('laporan', 'public');
+            $laporan->hapusFoto();
+            $data['foto'] = $fotoBaru;
+        }
+
+        $laporan->update($data);
+
+        return redirect()->route('laporan.show', $laporan)->with('success', 'Laporan berhasil diubah.');
     }
 
     public function destroy(Laporan $laporan)
     {
-        $laporan->delete();
+        $laporan->delete(); // foto ikut terhapus lewat event deleting pada model
 
-        return back()->with('success', 'Laporan dihapus.');
+        return redirect()->route('laporan.index')->with('success', 'Laporan berhasil dihapus.');
     }
 }

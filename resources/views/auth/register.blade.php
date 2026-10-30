@@ -6,7 +6,7 @@
     <div class="auth-hero">
         <h1>Gabung<br>Jadi Petugas </h1>
         <p>Buat akun untuk memantau, menindaklanjuti, dan menyelesaikan laporan banjir di wilayah Anda.</p>
-        <a href="{{ route('laporan.create') }}" class="btn btn-light">Lapor tanpa login →</a>
+        <a href="{{ route('lapor.create') }}" class="btn btn-light">Lapor tanpa login →</a>
     </div>
 
     <div class="card auth-card">

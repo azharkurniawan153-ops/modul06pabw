@@ -10,12 +10,14 @@ return new class extends Migration
     {
         Schema::create('laporans', function (Blueprint $table) {
             $table->id();
-            $table->string('nama_pelapor');
+            $table->string('nama_pelapor', 100);
             $table->string('no_hp', 20);
             $table->string('lokasi');
-            $table->unsignedInteger('tinggi_air'); // dalam cm
-            $table->text('deskripsi');
-            $table->enum('status', ['baru', 'diproses', 'selesai'])->default('baru');
+            $table->string('kecamatan', 100);
+            $table->unsignedInteger('tinggi_air');      // dalam cm
+            $table->text('keterangan');
+            $table->string('foto')->nullable();          // path relatif di disk "public"
+            $table->string('status', 20)->default('Menunggu'); // Menunggu | Diproses | Selesai
             $table->timestamps();
         });
     }

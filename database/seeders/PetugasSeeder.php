@@ -7,6 +7,7 @@ use App\Models\User;
 use Faker\Factory as Faker;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Storage;
 
 class PetugasSeeder extends Seeder
 {
@@ -29,15 +30,30 @@ class PetugasSeeder extends Seeder
             ]);
         }
 
-        // Contoh laporan banjir dummy
-        for ($i = 0; $i < 8; $i++) {
+        // Contoh laporan banjir dummy (dengan foto placeholder agar thumbnail tampil)
+        $kecamatan = ['Sukun', 'Lowokwaru', 'Klojen', 'Blimbing', 'Kedungkandang'];
+        Storage::disk('public')->makeDirectory('laporan');
+
+        for ($i = 1; $i <= 12; $i++) {
+            $foto = null;
+            if (function_exists('imagecreatetruecolor')) {
+                $img = imagecreatetruecolor(640, 400);
+                imagefill($img, 0, 0, imagecolorallocate($img, 30 + $i * 8, 110 + $i * 5, 190));
+                imagestring($img, 5, 20, 20, 'Contoh foto banjir #' . $i, imagecolorallocate($img, 255, 255, 255));
+                $foto = 'laporan/dummy-' . $i . '.jpg';
+                imagejpeg($img, Storage::disk('public')->path($foto), 85);
+                imagedestroy($img);
+            }
+
             Laporan::create([
                 'nama_pelapor' => $faker->name(),
-                'no_hp'        => $faker->phoneNumber(),
-                'lokasi'       => $faker->streetAddress() . ', ' . $faker->city(),
+                'no_hp'        => '08' . $faker->numerify('##########'),
+                'lokasi'       => $faker->streetAddress(),
+                'kecamatan'    => $faker->randomElement($kecamatan),
                 'tinggi_air'   => $faker->numberBetween(10, 150),
-                'deskripsi'    => 'Air meluap setelah hujan deras, mohon bantuan evakuasi dan pemantauan.',
-                'status'       => $faker->randomElement(['baru', 'diproses', 'selesai']),
+                'keterangan'   => 'Air meluap setelah hujan deras, mohon bantuan evakuasi dan pemantauan.',
+                'foto'         => $foto,
+                'status'       => $faker->randomElement(Laporan::STATUS),
             ]);
         }
     }
